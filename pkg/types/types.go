@@ -29,6 +29,13 @@ type User struct {
 	Create   time.Time `json:"create"`
 }
 
+type UserToken struct {
+	Token  string    `json:"token"`
+	UserID int64     `json:"user_id"`
+	Create time.Time `json:"create"`
+	Expire time.Time `json:"expire"`
+}
+
 // Category is a structure defining a product category
 type Category struct {
 	ID   int64  `json:"id"`
@@ -40,7 +47,7 @@ type Product struct {
 	ID         int64     `json:"id"`
 	Name       string    `json:"name"`
 	CategoryID int64     `json:"category_id"`
-	FotoID     []int64   `json:"foto_id"`
+	FotosID    []int64   `json:"foto_id"`
 	Qty        int       `json:"qty"`
 	Price      int       `json:"price"`
 	Create     time.Time `json:"create"`
