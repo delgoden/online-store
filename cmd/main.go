@@ -9,6 +9,10 @@ import (
 	"time"
 
 	"github.com/delgoden/internet-store/cmd/app"
+	"github.com/delgoden/internet-store/pkg/admin"
+	"github.com/delgoden/internet-store/pkg/auth"
+	"github.com/delgoden/internet-store/pkg/product"
+	"github.com/delgoden/internet-store/pkg/root"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.uber.org/dig"
@@ -25,6 +29,7 @@ func main() {
 	}
 }
 
+// excute initializes a connection to the database, initializes services and starts a server instance
 func excute(host, port, db string) (err error) {
 	deps := []interface{}{
 		app.NewServer,
@@ -33,6 +38,11 @@ func excute(host, port, db string) (err error) {
 			ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 			return pgxpool.Connect(ctx, db)
 		},
+
+		admin.NewService,
+		auth.NewService,
+		product.NewService,
+		root.NewService,
 		func(server *app.Server) *http.Server {
 			return &http.Server{
 				Addr:    net.JoinHostPort(host, port),

@@ -3,27 +3,44 @@ package app
 import (
 	"net/http"
 
+	"github.com/delgoden/internet-store/pkg/admin"
+	"github.com/delgoden/internet-store/pkg/auth"
+	"github.com/delgoden/internet-store/pkg/product"
+	"github.com/delgoden/internet-store/pkg/root"
 	"github.com/gorilla/mux"
 )
 
 const (
-	GET    = "GET"
-	POST   = "POST"
-	DELETE = "DELETE"
+	GET    = "GET"    //
+	POST   = "POST"   //
+	DELETE = "DELETE" //
 )
 
+// Server ...
 type Server struct {
-	mux *mux.Router
+	mux        *mux.Router
+	adminSvc   *admin.Service
+	authSvc    *auth.Service
+	productSvc *product.Service
+	rootSvc    *root.Service
 }
 
-func NewServer(mux *mux.Router) *Server {
-	return &Server{mux: mux}
+// NewServer constructor function to create the server
+func NewServer(mux *mux.Router, adminSvc *admin.Service, authSvc *auth.Service, productSvc *product.Service, rootSvc *root.Service) *Server {
+	return &Server{
+		mux:        mux,
+		adminSvc:   adminSvc,
+		authSvc:    authSvc,
+		productSvc: productSvc,
+		rootSvc:    rootSvc,
+	}
 }
 
 func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	s.mux.ServeHTTP(writer, request)
 }
 
+// InitRoute registration of routers
 func (s *Server) InitRoute() {
 	authSubrouter := s.mux.PathPrefix("/api/auth").Subrouter()
 	authSubrouter.HandleFunc("/signup", s.SignUp)
