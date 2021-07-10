@@ -18,10 +18,22 @@ func NewService(pool *pgxpool.Pool) *Service {
 
 // GiveRoleAdministrator gives the user the admin role
 func (s *Service) GiveRoleAdministrator(ctx context.Context, id int64) (*types.Status, error) {
-	return nil, nil
+	status := &types.Status{}
+	_, err := s.pool.Exec(ctx, `UPDATE users SET role = 'ADMINISTRATOR' WHERE id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+	status.Status = true
+	return status, nil
 }
 
 // RemoveRoleAdministrator removes the administrator role from the user
 func (s *Service) RemoveRoleAdministrator(ctx context.Context, id int64) (*types.Status, error) {
-	return nil, nil
+	status := &types.Status{}
+	_, err := s.pool.Exec(ctx, `UPDATE users SET role = 'CUSTOMER' WHERE id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+	status.Status = true
+	return status, nil
 }

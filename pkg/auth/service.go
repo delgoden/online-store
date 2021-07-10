@@ -93,3 +93,39 @@ func (s *Service) SignIn(ctx context.Context, signInData *types.Auth) (*types.To
 
 	return token, nil
 }
+
+func (s *Service) GetIDAndRoleByToken(ctx context.Context, token string) (int64, string, error) {
+	var (
+		id   int64
+		role string
+	)
+
+	err := s.pool.QueryRow(ctx, `SELECT user_id FROM users_tokens WHERE token = $1`, token).Scan(&id)
+	if err == pgx.ErrNoRows {
+		log.Println(err)
+		return 0, role, ErrTokernNotFound
+	} else {
+
+		err = s.pool.QueryRow(ctx, `SELECT user_id FROM users_tokens WHERE token = $1 and (expire > CURRENT_TIMESTAMP)`, token).Scan(&id)
+		if err == pgx.ErrNoRows {
+			log.Println(err)
+			return 0, role, ErrTokenExpired
+		}
+
+	}
+
+	if err != nil {
+		log.Println(err)
+		return 0, role, ErrInternal
+	}
+
+	err = s.pool.QueryRow(ctx, `
+        SELECT role FROM users WHERE id = $1
+    `, id).Scan(&role)
+	if err != nil {
+		log.Println(err)
+		return 0, "", ErrInternal
+	}
+
+	return id, role, nil
+}

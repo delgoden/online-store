@@ -3,6 +3,7 @@ package app
 import (
 	"net/http"
 
+	"github.com/delgoden/internet-store/cmd/app/middleware"
 	"github.com/delgoden/internet-store/pkg/admin"
 	"github.com/delgoden/internet-store/pkg/auth"
 	"github.com/delgoden/internet-store/pkg/product"
@@ -42,22 +43,31 @@ func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 
 // InitRoute registration of routers
 func (s *Server) InitRoute() {
+
+	s.mux.Use(middleware.Logger)
+	userAuthenticationMd := middleware.Authenticate(s.authSvc.GetIDAndRoleByToken)
+	rootAccessMd := middleware.CheckAccess(middleware.CheckAccessRoot)
+	adminAccess := middleware.CheckAccess(middleware.CheckAccessAdminOrAbove)
+
 	authSubrouter := s.mux.PathPrefix("/api/auth").Subrouter()
 	authSubrouter.HandleFunc("/signup", s.signUp)
 	authSubrouter.HandleFunc("/signin", s.signIn)
 
 	rootSubrouter := s.mux.PathPrefix("/api/root").Subrouter()
-	rootSubrouter.HandleFunc("/role/admin/give", s.giveRoleAdministrator).Methods(POST)
-	rootSubrouter.HandleFunc("role/admin/remove", s.removeRoleAdministrator).Methods(DELETE)
+
+	rootSubrouter.Use(userAuthenticationMd)
+	rootSubrouter.Handle("/role/admin/give/{id:[0-9]+}", rootAccessMd(http.HandlerFunc(s.giveRoleAdministrator))).Methods(POST)
+	rootSubrouter.Handle("/role/admin/remove/{id:[0-9]+}", rootAccessMd(http.HandlerFunc(s.removeRoleAdministrator))).Methods(DELETE)
 
 	adminSubrouter := s.mux.PathPrefix("/api/admin").Subrouter()
-	adminSubrouter.HandleFunc("/category/create", s.createCategory).Methods(POST)
-	adminSubrouter.HandleFunc("/category/update", s.updateCategory).Methods(POST)
-	adminSubrouter.HandleFunc("/product/create", s.createProduct).Methods(POST)
-	adminSubrouter.HandleFunc("/product/update", s.updateProduct).Methods(POST)
-	adminSubrouter.HandleFunc("/product/remove", s.removeProduct).Methods(DELETE)
-	adminSubrouter.HandleFunc("/product/{id:[0-9]+}/foto/add", s.addFoto).Methods(POST)
-	adminSubrouter.HandleFunc("/product/foto/{id:[0-9]+}/remove", s.removeFoto).Methods(DELETE)
+	adminSubrouter.Use(userAuthenticationMd)
+	adminSubrouter.Handle("/category/create", adminAccess(http.HandlerFunc(s.createCategory))).Methods(POST)
+	adminSubrouter.Handle("/category/update", adminAccess(http.HandlerFunc(s.updateCategory))).Methods(POST)
+	adminSubrouter.Handle("/product/create", adminAccess(http.HandlerFunc(s.createProduct))).Methods(POST)
+	adminSubrouter.Handle("/product/update", adminAccess(http.HandlerFunc(s.updateProduct))).Methods(POST)
+	adminSubrouter.Handle("/product/remove", adminAccess(http.HandlerFunc(s.removeProduct))).Methods(DELETE)
+	adminSubrouter.Handle("/product/{id:[0-9]+}/foto/add", adminAccess(http.HandlerFunc(s.addFoto))).Methods(POST)
+	adminSubrouter.Handle("/product/foto/{id:[0-9]+}/remove", adminAccess(http.HandlerFunc(s.removeFoto))).Methods(DELETE)
 
 	productSubrouter := s.mux.PathPrefix("/api/product").Subrouter()
 	productSubrouter.HandleFunc("/categories", s.getCategories).Methods(GET)
