@@ -26,7 +26,7 @@ func (s *Server) signUp(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 	user, err := s.authSvc.SignUp(request.Context(), regData)
-	if err == ErrLoginUsed {
+	if user == nil {
 		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusConflict), http.StatusConflict)
 		return

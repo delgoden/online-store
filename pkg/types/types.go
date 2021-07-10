@@ -44,15 +44,16 @@ type Category struct {
 
 // Product represents the structure defining the product
 type Product struct {
-	ID         int64     `json:"id"`
-	Name       string    `json:"name"`
-	CategoryID int64     `json:"category_id"`
-	FotosID    []int64   `json:"foto_id"`
-	Qty        int       `json:"qty"`
-	Price      int       `json:"price"`
-	Created    time.Time `json:"created"`
-	Updated    time.Time `json:"updated"`
-	Active     bool      `json:"active"`
+	ID          int64     `json:"id"`
+	Name        string    `json:"name"`
+	CategoryID  int64     `json:"category_id"`
+	Description string    `json:"description"`
+	FotosID     []int64   `json:"foto_id"`
+	Qty         int       `json:"qty"`
+	Price       int       `json:"price"`
+	Created     time.Time `json:"created"`
+	Updated     time.Time `json:"updated"`
+	Active      bool      `json:"active"`
 }
 
 // Foto is a structure for transferring a photo

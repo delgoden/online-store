@@ -1,10 +1,54 @@
 package app
 
-import "net/http"
+import (
+	"encoding/json"
+	"errors"
+	"log"
+	"net/http"
+
+	"github.com/delgoden/internet-store/pkg/types"
+)
+
+var (
+	ErrCategoryAlreadyExists = errors.New("category already exists")
+)
 
 // CreateCategory creates a new category
 func (s *Server) createCategory(writer http.ResponseWriter, request *http.Request) {
+	category := &types.Category{}
+	err := json.NewDecoder(request.Body).Decode(&category)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
+	category, err = s.adminSvc.CreateCategory(request.Context(), category)
+	if category == nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusConflict), http.StatusConflict)
+		return
+	}
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := json.Marshal(category)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 // UpdateCategory updates an existing category

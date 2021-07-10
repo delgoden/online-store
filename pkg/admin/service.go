@@ -2,9 +2,17 @@ package admin
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/delgoden/internet-store/pkg/types"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+)
+
+var (
+	ErrInternal              = errors.New("internal error")
+	ErrCategoryAlreadyExists = errors.New("category already exists")
 )
 
 // Service
@@ -19,17 +27,27 @@ func NewService(pool *pgxpool.Pool) *Service {
 
 // CreateCategory  creates a new category
 func (s *Service) CreateCategory(ctx context.Context, category *types.Category) (*types.Category, error) {
-	return nil, nil
+	err := s.pool.QueryRow(ctx, `
+	INSERT INTO categories (name) VALUES ($1) ON CONFLICT DO NOTHING RETURNING id`, category.Name).Scan(&category.ID)
+	if err == pgx.ErrNoRows {
+		log.Println(err)
+		return nil, ErrCategoryAlreadyExists
+	}
+	if err != nil {
+		log.Println(err)
+		return category, err
+	}
+	return category, nil
 }
 
 // UpdateCategory updates an existing category
 func (s *Service) UpdateCategory(ctx context.Context, category *types.Category) (*types.Category, error) {
-	return nil, nil
+	return category, nil
 }
 
 // CreateProduct creates a new product
 func (s *Service) CreateProduct(ctx context.Context, product *types.Product) (*types.Product, error) {
-	return nil, nil
+	return product, nil
 }
 
 // UpdateProduct updates existing products
