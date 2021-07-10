@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"log"
 
@@ -44,7 +46,7 @@ func (s *Service) SignUp(ctx context.Context, signUpData *types.Auth) (*types.Us
 				($1, $2, $3)		
 		ON CONFLICT (login) DO NOTHING
 		RETURNIG id, name, login, role, created
-	`, signUpData.Name, signUpData.Login, hash).Scan(&user.ID, &user.Name, &user.Login, &user.Create)
+	`, signUpData.Name, signUpData.Login, hash).Scan(&user.ID, &user.Name, &user.Login, &user.Role, &user.Create)
 	if err == pgx.ErrNoRows {
 		log.Println(err)
 		return nil, ErrLoginUsed
@@ -58,5 +60,40 @@ func (s *Service) SignUp(ctx context.Context, signUpData *types.Auth) (*types.Us
 
 // SignIn user authorization
 func (s *Service) SignIn(ctx context.Context, signInData *types.Auth) (*types.Token, error) {
-	return nil, nil
+	var (
+		token *types.Token
+		hash  string
+		id    int64
+	)
+	err := s.pool.QueryRow(ctx, `SELECT id, password FROM users WHERE phone = $1`, signInData.Login).Scan(&id, &hash)
+	if err == pgx.ErrNoRows {
+		log.Println(err)
+		return token, ErrNoSuchUser
+	}
+	if err != nil {
+		log.Println(err)
+		return token, ErrInternal
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(signInData.Password))
+	if err != nil {
+		log.Println(err)
+		return token, ErrInvalidPassword
+	}
+
+	buffer := make([]byte, 256)
+	n, err := rand.Read(buffer)
+	if n != len(buffer) || err != nil {
+		log.Println(err)
+		return token, ErrInternal
+	}
+
+	token.Token = hex.EncodeToString(buffer)
+	_, err = s.pool.Exec(ctx, `INSERT INTO users_tokens(token, user_id) VALUES ($1, $2)`, token, id)
+	if err != nil {
+		log.Println(err)
+		return nil, ErrInternal
+	}
+
+	return token, nil
 }
