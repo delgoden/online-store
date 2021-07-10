@@ -1,0 +1,27 @@
+### user registration
+POST http://localhost:9999/api/auth/signup HTTP/1.1
+Content-Type: application/json
+
+{
+	"name": "user",
+    "login": "qwe@rty.yui",
+    "password": "qwerty"
+}
+
+### user authorization
+POST http://localhost:9999/api/auth/signin HTTP/1.1
+Content-Type: application/json
+
+{
+	"login": "fktdgf@gmail.com",
+    "password": "secret"
+}
+
+### user authorization
+POST http://localhost:9999/api/auth/signin HTTP/1.1
+Content-Type: application/json
+
+{
+	"login": "qwe@rty.yui",
+    "password": "qwerty"
+}

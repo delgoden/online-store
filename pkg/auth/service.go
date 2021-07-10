@@ -37,16 +37,12 @@ func (s *Service) SignUp(ctx context.Context, signUpData *types.Auth) (*types.Us
 	if err != nil {
 		return nil, ErrInternal
 	}
-	var user *types.User
+	user := &types.User{}
 	err = s.pool.QueryRow(ctx, `
-		INSERT INTO 
-			users 
-				(name, login, password)
-			VALUES
-				($1, $2, $3)		
-		ON CONFLICT (login) DO NOTHING
-		RETURNIG id, name, login, role, created
-	`, signUpData.Name, signUpData.Login, hash).Scan(&user.ID, &user.Name, &user.Login, &user.Role, &user.Create)
+		INSERT INTO users (name, login, password)
+		VALUES ($1, $2, $3)		
+		ON CONFLICT DO NOTHING RETURNING id, name, login, role, created
+	`, signUpData.Name, signUpData.Login, hash).Scan(&user.ID, &user.Name, &user.Login, &user.Role, &user.Created)
 	if err == pgx.ErrNoRows {
 		log.Println(err)
 		return nil, ErrLoginUsed
@@ -61,11 +57,11 @@ func (s *Service) SignUp(ctx context.Context, signUpData *types.Auth) (*types.Us
 // SignIn user authorization
 func (s *Service) SignIn(ctx context.Context, signInData *types.Auth) (*types.Token, error) {
 	var (
-		token *types.Token
-		hash  string
-		id    int64
+		hash string
+		id   int64
 	)
-	err := s.pool.QueryRow(ctx, `SELECT id, password FROM users WHERE phone = $1`, signInData.Login).Scan(&id, &hash)
+	token := &types.Token{}
+	err := s.pool.QueryRow(ctx, `SELECT id, password FROM users WHERE login = $1`, signInData.Login).Scan(&id, &hash)
 	if err == pgx.ErrNoRows {
 		log.Println(err)
 		return token, ErrNoSuchUser
@@ -89,7 +85,7 @@ func (s *Service) SignIn(ctx context.Context, signInData *types.Auth) (*types.To
 	}
 
 	token.Token = hex.EncodeToString(buffer)
-	_, err = s.pool.Exec(ctx, `INSERT INTO users_tokens(token, user_id) VALUES ($1, $2)`, token, id)
+	_, err = s.pool.Exec(ctx, `INSERT INTO users_tokens(token, user_id) VALUES ($1, $2)`, token.Token, id)
 	if err != nil {
 		log.Println(err)
 		return nil, ErrInternal

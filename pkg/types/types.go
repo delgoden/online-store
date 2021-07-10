@@ -26,14 +26,14 @@ type User struct {
 	Login    string    `json:"login"`
 	Password string    `json:"password"`
 	Role     string    `json:"role"`
-	Create   time.Time `json:"create"`
+	Created  time.Time `json:"created"`
 }
 
 type UserToken struct {
-	Token  string    `json:"token"`
-	UserID int64     `json:"user_id"`
-	Create time.Time `json:"create"`
-	Expire time.Time `json:"expire"`
+	Token   string    `json:"token"`
+	UserID  int64     `json:"user_id"`
+	Created time.Time `json:"created"`
+	Expire  time.Time `json:"expire"`
 }
 
 // Category is a structure defining a product category
@@ -50,8 +50,8 @@ type Product struct {
 	FotosID    []int64   `json:"foto_id"`
 	Qty        int       `json:"qty"`
 	Price      int       `json:"price"`
-	Create     time.Time `json:"create"`
-	Update     time.Time `json:"update"`
+	Created    time.Time `json:"created"`
+	Updated    time.Time `json:"updated"`
 	Active     bool      `json:"active"`
 }
 
