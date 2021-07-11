@@ -20,9 +20,10 @@ CREATE TABLE categories (
 	name TEXT NOT NULL UNIQUE
 );
 -- 
-CREATE TABLE fotos (
+CREATE TABLE photos (
 	id BIGSERIAL PRIMARY KEY,
-	name TEXT NOT NULL UNIQUE
+	name TEXT NOT NULL UNIQUE,
+	product_id INTEGER NOT NULL
 );
 -- 
 CREATE TABLE products (
@@ -30,7 +31,6 @@ CREATE TABLE products (
 	name TEXT NOT NULL UNIQUE,
 	category_id INTEGER NOT NULL,
 	description TEXT NOT NULL,
-	fotos_id INTEGER [] NOT NULL DEFAULT '{}',
 	qty INTEGER NOT NULL,
 	price INTEGER NOT NULL,
 	active BOOLEAN NOT NULL DEFAULT false,

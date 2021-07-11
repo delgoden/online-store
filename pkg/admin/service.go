@@ -4,7 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
+	"os"
+	"sync"
 
 	"github.com/delgoden/internet-store/pkg/types"
 	"github.com/jackc/pgx/v4"
@@ -148,12 +152,96 @@ func (s *Service) RemoveProduct(ctx context.Context, id int64) (*types.Status, e
 	return status, nil
 }
 
-// AddFoto adds a new photo
-func (s *Service) AddFoto(ctx context.Context, foto *types.Foto) (*types.Status, error) {
-	return nil, nil
+// Addphoto adds a new photo
+func (s *Service) AddPhoto(ctx context.Context, photo *types.Photo, productID int64) (*types.Status, error) {
+
+	ch := make(chan error)
+	status := &types.Status{}
+	name := photo.Name
+	err := s.pool.QueryRow(ctx, `SELECT name FROM products WHERE id =$1`, productID).Scan(&photo.Name)
+	if err == pgx.ErrNoRows {
+		return status, ErrProductDoesNotExist
+	}
+	photo.Name += name
+
+	go func() {
+
+		err = saveFile(photo.File, photo.Name)
+		if err != nil {
+			log.Print(err)
+			ch <- err
+			return
+		}
+	}()
+
+	err = <-ch
+	close(ch)
+	if err != nil {
+		return status, err
+	}
+	err = s.pool.QueryRow(ctx, `INSERT INTO photos (name, product_id) VALUES ($1, $2)`, photo.Name, productID).Scan(&photo.ID)
+	if err == pgx.ErrNoRows {
+		return status, err
+	}
+	if err != nil {
+		return status, err
+	}
+
+	status.Status = true
+	return status, nil
 }
 
-// RemoveFoto deletes photo
-func (s *Service) RemoveFoto(ctx context.Context, id int64) (*types.Status, error) {
-	return nil, nil
+// Removephoto deletes photo
+func (s *Service) RemovePhoto(ctx context.Context, photoID int64) (*types.Status, error) {
+	wg := &sync.WaitGroup{}
+	photo := &types.Photo{}
+	status := &types.Status{
+		Status: false,
+	}
+	err := s.pool.QueryRow(ctx, `DELETE FROM photos WHERE id = $1 RETURNING name`, photoID).Scan(&photo.Name)
+	if err != nil {
+		log.Println(err)
+		return status, ErrInternal
+	}
+
+	wg.Add(1)
+	go remoteBannerImage(wg, photo.Name)
+	wg.Wait()
+	status.Status = true
+	return status, nil
+}
+
+func saveFile(data multipart.File, name string) error {
+	f, err := os.Create("db/images" + name)
+	if err != nil {
+		log.Println("Can't open file: " + "db/images" + name)
+		return err
+	}
+	defer f.Close()
+	buf := make([]byte, 1024)
+
+	for {
+		n, err := data.Read(buf)
+
+		if err != nil && err != io.EOF {
+			log.Println("Couldn't write file: " + "db/images" + name)
+			break
+		}
+
+		if n == 0 {
+			break
+		}
+
+		if _, err := f.Write(buf[:n]); err != nil {
+			log.Println("Couldn't write file: " + "db/images" + name)
+			break
+		}
+	}
+	return nil
+}
+
+func remoteBannerImage(wg *sync.WaitGroup, imageName string) {
+	defer wg.Done()
+
+	os.Remove("db/images" + imageName)
 }

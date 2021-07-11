@@ -1,6 +1,9 @@
 package types
 
-import "time"
+import (
+	"mime/multipart"
+	"time"
+)
 
 // Auth is a structure for transferring registration and authorization data
 type Auth struct {
@@ -57,7 +60,8 @@ type Product struct {
 }
 
 // Foto is a structure for transferring a photo
-type Foto struct {
+type Photo struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
+	File multipart.File
 }

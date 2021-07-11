@@ -6,8 +6,10 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/delgoden/internet-store/pkg/types"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -210,10 +212,80 @@ func (s *Server) removeProduct(writer http.ResponseWriter, request *http.Request
 
 // AddFoto adds a new photo
 func (s *Server) addFoto(writer http.ResponseWriter, request *http.Request) {
+	foto := &types.Photo{}
+	vars := mux.Vars(request)
+	idParam := vars["id"]
 
+	product_id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	file, fileHead, err := request.FormFile("image")
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	foto.File = file
+	fileName := fileHead.Filename
+	nameSls := strings.Split(fileName, ".")
+	foto.Name = uuid.New().String() + "." + nameSls[1]
+
+	status, err := s.adminSvc.AddPhoto(request.Context(), foto, product_id)
+	if err != nil {
+		log.Print(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := json.Marshal(status)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 // RemoveFoto deletes photo
 func (s *Server) removeFoto(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	idParam := vars["id"]
+	photoID, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
+	status, err := s.adminSvc.RemovePhoto(request.Context(), photoID)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	data, err := json.Marshal(status)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
