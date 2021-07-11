@@ -65,7 +65,7 @@ func (s *Server) InitRoute() {
 	adminSubrouter.Handle("/category/update", adminAccess(http.HandlerFunc(s.updateCategory))).Methods(POST)
 	adminSubrouter.Handle("/product/create", adminAccess(http.HandlerFunc(s.createProduct))).Methods(POST)
 	adminSubrouter.Handle("/product/update", adminAccess(http.HandlerFunc(s.updateProduct))).Methods(POST)
-	adminSubrouter.Handle("/product/remove", adminAccess(http.HandlerFunc(s.removeProduct))).Methods(DELETE)
+	adminSubrouter.Handle("/product/remove/{id:[0-9]+}", adminAccess(http.HandlerFunc(s.removeProduct))).Methods(DELETE)
 	adminSubrouter.Handle("/product/{id:[0-9]+}/foto/add", adminAccess(http.HandlerFunc(s.addFoto))).Methods(POST)
 	adminSubrouter.Handle("/product/foto/{id:[0-9]+}/remove", adminAccess(http.HandlerFunc(s.removeFoto))).Methods(DELETE)
 

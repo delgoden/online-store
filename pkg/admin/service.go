@@ -14,6 +14,8 @@ var (
 	ErrInternal              = errors.New("internal error")
 	ErrCategoryAlreadyExists = errors.New("category already exists")
 	ErrCategoryDoesNotExist  = errors.New("category does not exist")
+	ErrProductAlreadyExists  = errors.New("product already exists")
+	ErrProductDoesNotExist   = errors.New("product does not exist")
 )
 
 // Service
@@ -61,6 +63,21 @@ func (s *Service) UpdateCategory(ctx context.Context, category *types.Category) 
 
 // CreateProduct creates a new product
 func (s *Service) CreateProduct(ctx context.Context, product *types.Product) (*types.Product, error) {
+	err := s.pool.QueryRow(ctx, `
+            INSERT INTO products (name, category_id, description, qty, price)
+            VALUES ($1, $2, $3, $4, $5)
+			ON CONFLICT DO NOTHING 
+            RETURNING id, created, updated, active
+        `, product.Name, product.CategoryID, product.Description, product.Qty, product.Price).
+		Scan(&product.ID, &product.Created, &product.Updated, &product.Active)
+	if err == pgx.ErrNoRows && product.ID == 0 {
+		log.Println(err)
+		return nil, ErrProductAlreadyExists
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, ErrInternal
+	}
 	return product, nil
 }
 
@@ -71,7 +88,23 @@ func (s *Service) UpdateProduct(ctx context.Context, product *types.Product) (*t
 
 // RemoveProduct removes product
 func (s *Service) RemoveProduct(ctx context.Context, id int64) (*types.Status, error) {
-	return nil, nil
+	product := &types.Product{}
+	status := &types.Status{}
+	err := s.pool.QueryRow(ctx, `SELECT name FROM products WHERE id = $1`, id).Scan(&product.Name)
+	if product.Name == "" {
+		log.Println(err)
+		return status, ErrProductDoesNotExist
+	}
+
+	_, err = s.pool.Exec(ctx, `
+            DELETE FROM products WHERE id = $1
+        `, id)
+	if err != nil {
+		log.Println(err)
+		return status, ErrInternal
+	}
+	status.Status = true
+	return status, nil
 }
 
 // AddFoto adds a new photo

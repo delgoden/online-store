@@ -5,13 +5,17 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/delgoden/internet-store/pkg/types"
+	"github.com/gorilla/mux"
 )
 
 var (
 	ErrCategoryAlreadyExists = errors.New("category already exists")
 	ErrCategoryDoesNotExist  = errors.New("category does not exist")
+	ErrProductAlreadyExists  = errors.New("product already exists")
+	ErrProductDoesNotExist   = errors.New("product does not exist")
 )
 
 // CreateCategory creates a new category
@@ -93,7 +97,41 @@ func (s *Server) updateCategory(writer http.ResponseWriter, request *http.Reques
 
 // CreateProduct creates a new product
 func (s *Server) createProduct(writer http.ResponseWriter, request *http.Request) {
+	product := &types.Product{}
+	err := json.NewDecoder(request.Body).Decode(&product)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
+	product, err = s.adminSvc.CreateProduct(request.Context(), product)
+	if product == nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusConflict), http.StatusConflict)
+		return
+	}
+
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := json.Marshal(product)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 // UpdateProduct updates existing products
@@ -103,7 +141,37 @@ func (s *Server) updateProduct(writer http.ResponseWriter, request *http.Request
 
 // RemoveProduct removes product
 func (s *Server) removeProduct(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	idParam := vars["id"]
 
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	status, err := s.adminSvc.RemoveProduct(request.Context(), id)
+	if err == ErrCategoryDoesNotExist && status.Status == false {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.Marshal(status)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 // AddFoto adds a new photo

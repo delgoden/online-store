@@ -29,7 +29,7 @@ CREATE TABLE products (
 	id BIGSERIAL PRIMARY KEY,
 	name TEXT NOT NULL UNIQUE,
 	category_id INTEGER NOT NULL,
-	descrintions TEXT NOT NULL,
+	description TEXT NOT NULL,
 	fotos_id INTEGER [] NOT NULL DEFAULT '{}',
 	qty INTEGER NOT NULL,
 	price INTEGER NOT NULL,
