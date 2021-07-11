@@ -13,6 +13,7 @@ import (
 var (
 	ErrInternal              = errors.New("internal error")
 	ErrCategoryAlreadyExists = errors.New("category already exists")
+	ErrCategoryDoesNotExist  = errors.New("category does not exist")
 )
 
 // Service
@@ -42,6 +43,19 @@ func (s *Service) CreateCategory(ctx context.Context, category *types.Category) 
 
 // UpdateCategory updates an existing category
 func (s *Service) UpdateCategory(ctx context.Context, category *types.Category) (*types.Category, error) {
+	test := &types.Category{}
+	err := s.pool.QueryRow(ctx, `SELECT name FROM categories WHERE id = $1`, category.ID).Scan(&test.Name)
+	if err == pgx.ErrNoRows || test.Name == "" {
+		//log.Println(err, category)
+		category.ID = 0
+		return category, ErrCategoryDoesNotExist
+	}
+
+	_, err = s.pool.Exec(ctx, `UPDATE categories SET name = $1 WHERE id = $2`, category.Name, category.ID)
+	if err != nil {
+		log.Println(err)
+		return nil, ErrInternal
+	}
 	return category, nil
 }
 
