@@ -136,7 +136,41 @@ func (s *Server) createProduct(writer http.ResponseWriter, request *http.Request
 
 // UpdateProduct updates existing products
 func (s *Server) updateProduct(writer http.ResponseWriter, request *http.Request) {
+	product := &types.Product{}
+	err := json.NewDecoder(request.Body).Decode(&product)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
+	status, err := s.adminSvc.UpdateProduct(request.Context(), product)
+	if status.Status == false {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := json.Marshal(status)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	_, err = writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 }
 
 // RemoveProduct removes product

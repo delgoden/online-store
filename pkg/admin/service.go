@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/delgoden/internet-store/pkg/types"
@@ -82,8 +83,48 @@ func (s *Service) CreateProduct(ctx context.Context, product *types.Product) (*t
 }
 
 // UpdateProduct updates existing products
-func (s *Service) UpdateProduct(ctx context.Context, product *types.Product) (*types.Product, error) {
-	return nil, nil
+func (s *Service) UpdateProduct(ctx context.Context, product *types.Product) (*types.Status, error) {
+	active := false
+	name := ""
+	status := &types.Status{
+		Status: false,
+	}
+	err := s.pool.QueryRow(ctx, `SELECT name, active FROM products WHERE id = $1`, product.ID).Scan(&name, &active)
+	if err == pgx.ErrNoRows && name == "" {
+		log.Println(err, status.Status)
+		return status, ErrProductDoesNotExist
+	}
+
+	query := " UPDATE products SET"
+	if product.Name != "" {
+		query += fmt.Sprintf(" name = '%v'", product.Name)
+	}
+	if product.CategoryID != 0 {
+		query += fmt.Sprintf(", category_id = %v", product.CategoryID)
+	}
+	if product.Description != "" {
+		query += fmt.Sprintf(", description = '%v'", product.Description)
+	}
+	if product.Qty != 0 {
+		query += fmt.Sprintf(", qty = %v", product.Qty)
+	}
+	if product.Price != 0 {
+		query += fmt.Sprintf(", price = '%v'", product.Price)
+	}
+	query += ", updated = CURRENT_TIMESTAMP"
+	if product.Active != active {
+
+		query += fmt.Sprintf(", active = %t", product.Active)
+	}
+	query += " WHERE id = $1"
+	log.Println(query)
+	_, err = s.pool.Exec(ctx, query, product.ID)
+	if err != nil {
+		return status, err
+	}
+
+	status.Status = true
+	return status, nil
 }
 
 // RemoveProduct removes product
