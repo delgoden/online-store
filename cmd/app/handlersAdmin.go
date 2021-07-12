@@ -108,6 +108,11 @@ func (s *Server) createProduct(writer http.ResponseWriter, request *http.Request
 	}
 
 	product, err = s.adminSvc.CreateProduct(request.Context(), product)
+	if err == ErrCategoryDoesNotExist && product == nil {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 	if product == nil {
 		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusConflict), http.StatusConflict)
@@ -147,6 +152,11 @@ func (s *Server) updateProduct(writer http.ResponseWriter, request *http.Request
 	}
 
 	status, err := s.adminSvc.UpdateProduct(request.Context(), product)
+	if err == ErrCategoryDoesNotExist && status.Status == false {
+		log.Println(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 	if status.Status == false {
 		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -235,8 +245,13 @@ func (s *Server) addFoto(writer http.ResponseWriter, request *http.Request) {
 	foto.Name = uuid.New().String() + "." + nameSls[1]
 
 	status, err := s.adminSvc.AddPhoto(request.Context(), foto, product_id)
-	if err != nil {
+	if err != nil && status == nil {
 		log.Print(err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

@@ -53,7 +53,6 @@ func (s *Service) UpdateCategory(ctx context.Context, category *types.Category) 
 	test := &types.Category{}
 	err := s.pool.QueryRow(ctx, `SELECT name FROM categories WHERE id = $1`, category.ID).Scan(&test.Name)
 	if err == pgx.ErrNoRows || test.Name == "" {
-		//log.Println(err, category)
 		category.ID = 0
 		return category, ErrCategoryDoesNotExist
 	}
@@ -68,7 +67,12 @@ func (s *Service) UpdateCategory(ctx context.Context, category *types.Category) 
 
 // CreateProduct creates a new product
 func (s *Service) CreateProduct(ctx context.Context, product *types.Product) (*types.Product, error) {
-	err := s.pool.QueryRow(ctx, `
+	test := &types.Category{}
+	err := s.pool.QueryRow(ctx, `SELECT name FROM categories WHERE id = $1`, product.CategoryID).Scan(&test.Name)
+	if err == pgx.ErrNoRows || test.Name == "" {
+		return nil, ErrCategoryDoesNotExist
+	}
+	err = s.pool.QueryRow(ctx, `
             INSERT INTO products (name, category_id, description, qty, price)
             VALUES ($1, $2, $3, $4, $5)
 			ON CONFLICT DO NOTHING 
@@ -93,7 +97,13 @@ func (s *Service) UpdateProduct(ctx context.Context, product *types.Product) (*t
 	status := &types.Status{
 		Status: false,
 	}
-	err := s.pool.QueryRow(ctx, `SELECT name, active FROM products WHERE id = $1`, product.ID).Scan(&name, &active)
+	test := &types.Category{}
+	err := s.pool.QueryRow(ctx, `SELECT name FROM categories WHERE id = $1`, product.CategoryID).Scan(&test.Name)
+	if err == pgx.ErrNoRows || test.Name == "" {
+		return status, ErrCategoryDoesNotExist
+	}
+
+	err = s.pool.QueryRow(ctx, `SELECT name, active FROM products WHERE id = $1`, product.ID).Scan(&name, &active)
 	if err == pgx.ErrNoRows && name == "" {
 		log.Println(err, status.Status)
 		return status, ErrProductDoesNotExist
@@ -160,26 +170,26 @@ func (s *Service) AddPhoto(ctx context.Context, photo *types.Photo, productID in
 	name := photo.Name
 	err := s.pool.QueryRow(ctx, `SELECT name FROM products WHERE id =$1`, productID).Scan(&photo.Name)
 	if err == pgx.ErrNoRows {
-		return status, ErrProductDoesNotExist
+
+		return nil, ErrProductDoesNotExist
 	}
 	photo.Name += name
 
-	go func() {
+	go func(ch chan error) {
 
 		err = saveFile(photo.File, photo.Name)
 		if err != nil {
 			log.Print(err)
-			ch <- err
-			return
 		}
-	}()
+		ch <- err
+	}(ch)
 
 	err = <-ch
 	close(ch)
 	if err != nil {
 		return status, err
 	}
-	err = s.pool.QueryRow(ctx, `INSERT INTO photos (name, product_id) VALUES ($1, $2)`, photo.Name, productID).Scan(&photo.ID)
+	_, err = s.pool.Exec(ctx, `INSERT INTO photos (name, product_id) VALUES ($1, $2)`, photo.Name, productID)
 	if err == pgx.ErrNoRows {
 		return status, err
 	}
@@ -212,9 +222,9 @@ func (s *Service) RemovePhoto(ctx context.Context, photoID int64) (*types.Status
 }
 
 func saveFile(data multipart.File, name string) error {
-	f, err := os.Create("db/images" + name)
+	f, err := os.Create("db/images/product/" + name)
 	if err != nil {
-		log.Println("Can't open file: " + "db/images" + name)
+		log.Println("Can't open file: " + "db/images/product/" + name)
 		return err
 	}
 	defer f.Close()
@@ -224,7 +234,7 @@ func saveFile(data multipart.File, name string) error {
 		n, err := data.Read(buf)
 
 		if err != nil && err != io.EOF {
-			log.Println("Couldn't write file: " + "db/images" + name)
+			log.Println("Couldn't write file: " + "db/images/product/" + name)
 			break
 		}
 
@@ -233,7 +243,7 @@ func saveFile(data multipart.File, name string) error {
 		}
 
 		if _, err := f.Write(buf[:n]); err != nil {
-			log.Println("Couldn't write file: " + "db/images" + name)
+			log.Println("Couldn't write file: " + "db/images/product/" + name)
 			break
 		}
 	}
@@ -243,5 +253,5 @@ func saveFile(data multipart.File, name string) error {
 func remoteBannerImage(wg *sync.WaitGroup, imageName string) {
 	defer wg.Done()
 
-	os.Remove("db/images" + imageName)
+	os.Remove("db/images/product/" + imageName)
 }

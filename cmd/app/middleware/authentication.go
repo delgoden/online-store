@@ -34,20 +34,20 @@ func Authenticate(idFunc IDFunc) func(http.Handler) http.Handler {
 			token := request.Header.Get("Authorization")
 
 			id, role, err := idFunc(request.Context(), token)
-			if err == ErrTokenNotFound {
-				log.Println(err)
+			if err != nil && id == 0 && role == "" {
+				log.Println(1, err)
 				http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
 
-			if err == ErrTokenExpired {
-				log.Println(err)
+			if err != nil && id != 0 {
+				log.Println(2, err)
 				http.Error(writer, http.StatusText(http.StatusLocked), http.StatusLocked)
 				return
 			}
 
 			if err != nil {
-				log.Println(err)
+				log.Println(3, err)
 				http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}

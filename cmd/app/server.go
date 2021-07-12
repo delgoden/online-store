@@ -66,8 +66,8 @@ func (s *Server) InitRoute() {
 	adminSubrouter.Handle("/product/create", adminAccess(http.HandlerFunc(s.createProduct))).Methods(POST)
 	adminSubrouter.Handle("/product/update", adminAccess(http.HandlerFunc(s.updateProduct))).Methods(POST)
 	adminSubrouter.Handle("/product/remove/{id:[0-9]+}", adminAccess(http.HandlerFunc(s.removeProduct))).Methods(DELETE)
-	adminSubrouter.Handle("/product/{product_id:[0-9]+}/foto/add", adminAccess(http.HandlerFunc(s.addFoto))).Methods(POST)
-	adminSubrouter.Handle("/product/product/foto/{id:[0-9]+}/remove", adminAccess(http.HandlerFunc(s.removeFoto))).Methods(DELETE)
+	adminSubrouter.Handle("/product/{id:[0-9]+}/photo/add", adminAccess(http.HandlerFunc(s.addFoto))).Methods(POST)
+	adminSubrouter.Handle("/product/photo/{id:[0-9]+}/remove", adminAccess(http.HandlerFunc(s.removeFoto))).Methods(DELETE)
 
 	productSubrouter := s.mux.PathPrefix("/api/product").Subrouter()
 	productSubrouter.HandleFunc("/categories", s.getCategories).Methods(GET)
