@@ -71,8 +71,8 @@ func (s *Server) InitRoute() {
 
 	productSubrouter := s.mux.PathPrefix("/api/product").Subrouter()
 	productSubrouter.HandleFunc("/categories", s.getCategories).Methods(GET)
-	productSubrouter.HandleFunc("/products", s.getProducts).Methods(GET)
+	productSubrouter.HandleFunc("/products", s.getAllProducts).Methods(GET)
 	productSubrouter.HandleFunc("/category/{id:[0-9]+}/products", s.getProductsInCategory).Methods(GET)
 	productSubrouter.HandleFunc("/product/{id:[0-9]+}", s.getProductByID).Methods(GET)
-
+	s.mux.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("images/product/"))))
 }

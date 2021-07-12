@@ -222,7 +222,7 @@ func (s *Service) RemovePhoto(ctx context.Context, photoID int64) (*types.Status
 }
 
 func saveFile(data multipart.File, name string) error {
-	f, err := os.Create("db/images/product/" + name)
+	f, err := os.Create("images/product/" + name)
 	if err != nil {
 		log.Println("Can't open file: " + "db/images/product/" + name)
 		return err
@@ -234,7 +234,7 @@ func saveFile(data multipart.File, name string) error {
 		n, err := data.Read(buf)
 
 		if err != nil && err != io.EOF {
-			log.Println("Couldn't write file: " + "db/images/product/" + name)
+			log.Println("Couldn't write file: " + "images/product/" + name)
 			break
 		}
 
@@ -243,7 +243,7 @@ func saveFile(data multipart.File, name string) error {
 		}
 
 		if _, err := f.Write(buf[:n]); err != nil {
-			log.Println("Couldn't write file: " + "db/images/product/" + name)
+			log.Println("Couldn't write file: " + "images/product/" + name)
 			break
 		}
 	}
@@ -253,5 +253,5 @@ func saveFile(data multipart.File, name string) error {
 func remoteBannerImage(wg *sync.WaitGroup, imageName string) {
 	defer wg.Done()
 
-	os.Remove("db/images/product/" + imageName)
+	os.Remove("images/product/" + imageName)
 }

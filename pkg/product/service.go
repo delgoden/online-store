@@ -2,9 +2,17 @@ package product
 
 import (
 	"context"
+	"errors"
+	"log"
 
 	"github.com/delgoden/internet-store/pkg/types"
+	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v4/pgxpool"
+)
+
+var (
+	ErrNotFound = errors.New("item not found")
+	ErrInternal = errors.New("internal error")
 )
 
 type Service struct {
@@ -17,12 +25,33 @@ func NewService(pool *pgxpool.Pool) *Service {
 }
 
 // GetCategories gives a list of existing categories
-func (s *Service) GetCategories(ctx context.Context) ([]types.Category, error) {
-	return nil, nil
+func (s *Service) GetCategories(ctx context.Context) ([]*types.Category, error) {
+	categories := []*types.Category{}
+	rows, err := s.pool.Query(ctx, `SELECT id name FROM categories`)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		category := &types.Category{}
+		if err := rows.Scan(&category.ID, &category.Name); err != nil {
+			log.Println(err)
+		}
+
+		categories = append(categories, category)
+	}
+	err = rows.Err()
+	if err != nil {
+		return categories, ErrInternal
+	}
+
+	return categories, nil
 }
 
 // GetProducts displays a complete list of products
-func (s *Service) GetProducts(ctx context.Context) ([]types.Product, error) {
+func (s *Service) GetAllProducts(ctx context.Context) ([]types.Product, error) {
 	return nil, nil
 }
 
