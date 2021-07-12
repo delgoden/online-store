@@ -2,19 +2,13 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 
 	"github.com/delgoden/internet-store/pkg/types"
 )
 
-var (
-	ErrInternal        = errors.New("internal error")
-	ErrLoginUsed       = errors.New("login already registred")
-	ErrNoSuchUser      = errors.New("no such user")
-	ErrInvalidPassword = errors.New("invalid password")
-)
+var ()
 
 // SignUp user registration
 func (s *Server) signUp(writer http.ResponseWriter, request *http.Request) {

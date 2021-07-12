@@ -51,7 +51,8 @@ type Product struct {
 	Name        string    `json:"name"`
 	CategoryID  int64     `json:"category_id"`
 	Description string    `json:"description"`
-	FotosID     []int64   `json:"fotos_id"`
+	PhotosID    []int64   `json:"fotos_id"`
+	PhotosURL   []string  `json:"photos_url"`
 	Qty         int       `json:"qty"`
 	Price       int       `json:"price"`
 	Created     time.Time `json:"created"`

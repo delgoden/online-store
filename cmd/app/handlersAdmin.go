@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -13,12 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var (
-	ErrCategoryAlreadyExists = errors.New("category already exists")
-	ErrCategoryDoesNotExist  = errors.New("category does not exist")
-	ErrProductAlreadyExists  = errors.New("product already exists")
-	ErrProductDoesNotExist   = errors.New("product does not exist")
-)
+var ()
 
 // CreateCategory creates a new category
 func (s *Server) createCategory(writer http.ResponseWriter, request *http.Request) {

@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("item not found")
-	ErrInternal = errors.New("internal error")
+	ErrNotFound            = errors.New("item not found")
+	ErrInternal            = errors.New("internal error")
+	ErrProductDoesNotExist = errors.New("product does not exist")
 )
 
 type Service struct {
@@ -28,7 +29,7 @@ func NewService(pool *pgxpool.Pool) *Service {
 func (s *Service) GetCategories(ctx context.Context) ([]*types.Category, error) {
 	categories := []*types.Category{}
 	rows, err := s.pool.Query(ctx, `SELECT id name FROM categories`)
-	if errors.Is(err, pgx.ErrNoRows) {
+	if err == pgx.ErrNoRows {
 		return nil, ErrNotFound
 	}
 
@@ -51,16 +52,95 @@ func (s *Service) GetCategories(ctx context.Context) ([]*types.Category, error) 
 }
 
 // GetProducts displays a complete list of products
-func (s *Service) GetAllProducts(ctx context.Context) ([]types.Product, error) {
-	return nil, nil
+func (s *Service) GetAllActiveProducts(ctx context.Context) ([]*types.Product, error) {
+	products := []*types.Product{}
+	rowsProducts, err := s.pool.Query(ctx,
+		`SELECT id, name, category_id, description, photo_id, qty, price FROM products WHERE active = true`)
+	if err == pgx.ErrNoRows {
+		return nil, ErrNotFound
+	}
+
+	defer rowsProducts.Close()
+
+	for rowsProducts.Next() {
+		product := &types.Product{}
+		if err := rowsProducts.Scan(
+			&product.ID, &product.Name, &product.CategoryID, &product.Description,
+			&product.PhotosID, &product.Qty, &product.Price,
+		); err != nil {
+			log.Println(err)
+		}
+
+		rowsPhotos, err := s.pool.Query(ctx, `SELECT name FROM product_id = $1`, product.ID)
+		if err == pgx.ErrNoRows {
+			return nil, ErrNotFound
+		}
+
+		defer rowsPhotos.Close()
+
+		for rowsPhotos.Next() {
+			url := "http://localhost:9999/images/"
+			photo := &types.Photo{}
+			if err := rowsPhotos.Scan(&photo.Name); err != nil {
+				log.Println(err)
+			}
+			product.PhotosURL = append(product.PhotosURL, url+photo.Name)
+		}
+
+		err = rowsPhotos.Err()
+		if err != nil {
+			return products, ErrInternal
+		}
+
+		products = append(products, product)
+	}
+	err = rowsProducts.Err()
+	if err != nil {
+		return products, ErrInternal
+	}
+
+	return products, nil
 }
 
 // GetProductsInCategory displays a list of products in a category
-func (s *Service) GetProductsInCategory(ctx context.Context, categoryID int64) ([]types.Product, error) {
-	return nil, nil
+func (s *Service) GetProductsInCategory(ctx context.Context, categoryID int64) ([]*types.Product, error) {
+	products := []*types.Product{}
+	rowsProducts, err := s.pool.Query(ctx,
+		`SELECT id, name, category_id, description, photo_id, qty, price FROM products WHERE active = true`)
+	if err == pgx.ErrNoRows {
+		return nil, ErrProductDoesNotExist
+	}
+
+	defer rowsProducts.Close()
+
+	for rowsProducts.Next() {
+		product := &types.Product{}
+		if err := rowsProducts.Scan(
+			&product.ID, &product.Name, &product.CategoryID, &product.Description,
+			&product.PhotosID, &product.Qty, &product.Price,
+		); err != nil {
+			log.Println(err)
+			return nil, ErrInternal
+		}
+		products = append(products, product)
+	}
+	err = rowsProducts.Err()
+	if err != nil {
+		return products, ErrInternal
+	}
+
+	return products, nil
 }
 
 // GetProductByID issues the product according to its ID
 func (s *Service) GetProductByID(ctx context.Context, id int64) (*types.Product, error) {
-	return nil, nil
+	product := &types.Product{}
+	err := s.pool.QueryRow(ctx,
+		`SELECT id, name, category_id, description, photo_id, qty, price FROM products WHERE category_id = $1`, id).
+		Scan(&product.ID, &product.Name, &product.CategoryID, &product.Description,
+			&product.PhotosID, &product.Qty, &product.Price)
+	if err != nil {
+		return product, ErrProductDoesNotExist
+	}
+	return product, nil
 }
