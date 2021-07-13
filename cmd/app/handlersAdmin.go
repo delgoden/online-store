@@ -278,7 +278,7 @@ func (s *Server) removeFoto(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	status, err := s.adminSvc.RemovePhoto(request.Context(), photoID)
-	if err != nil {
+	if status.Status == false {
 		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return

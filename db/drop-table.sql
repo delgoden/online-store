@@ -8,3 +8,7 @@ DROP TABLE categories;
 DROP TABLE photos;
 --
 DROP TABLE products;
+--
+DROP TABLE positions;
+--
+DROP TABLE purchases;

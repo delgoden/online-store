@@ -51,7 +51,6 @@ type Product struct {
 	Name        string    `json:"name"`
 	CategoryID  int64     `json:"category_id"`
 	Description string    `json:"description"`
-	PhotosID    []int64   `json:"fotos_id"`
 	PhotosURL   []string  `json:"photos_url"`
 	Qty         int       `json:"qty"`
 	Price       int       `json:"price"`
@@ -65,4 +64,18 @@ type Photo struct {
 	ID   int64  `json:"id"`
 	Name string `json:"name"`
 	File multipart.File
+}
+
+type Position struct {
+	ID        int64 `json:"id"`
+	ProductID int64 `json:"product_id"`
+	Qty       int   `json:"qty"`
+	Price     int   `json:"price"`
+}
+
+type Purchases struct {
+	ID          int64     `json:"id"`
+	UserID      int64     `json:"user_id"`
+	PositionsID int64     `json:"position_id"`
+	Created     time.Time `json:"created"`
 }

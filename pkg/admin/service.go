@@ -215,7 +215,7 @@ func (s *Service) RemovePhoto(ctx context.Context, photoID int64) (*types.Status
 	}
 
 	wg.Add(1)
-	go remoteBannerImage(wg, photo.Name)
+	go remoteImage(wg, photo.Name)
 	wg.Wait()
 	status.Status = true
 	return status, nil
@@ -250,7 +250,7 @@ func saveFile(data multipart.File, name string) error {
 	return nil
 }
 
-func remoteBannerImage(wg *sync.WaitGroup, imageName string) {
+func remoteImage(wg *sync.WaitGroup, imageName string) {
 	defer wg.Done()
 
 	os.Remove("images/product/" + imageName)

@@ -1,0 +1,119 @@
+POST http://localhost:9999/api/auth/signup HTTP/1.1
+Content-Type: application/json
+
+{
+	"name": "user",
+    "login": "qwe@rty.yui",
+    "password": "qwerty"
+}
+
+### user authorization
+POST http://localhost:9999/api/auth/signin HTTP/1.1
+Content-Type: application/json
+
+{
+	"login": "fkgf@gmail.com",
+    "password": "secret"
+}
+
+### user authorization
+POST http://localhost:9999/api/auth/signin HTTP/1.1
+Content-Type: application/json
+
+{
+	"login": "qwe@rty.yui",
+    "password": "qwerty"
+}
+
+###
+POST http://localhost:9999/api/root/role/admin/give/2 HTTP/1.1
+Authorization: 83f630bbebb9d4432904f964854a17f9fa30b98c3c6a8294d9bcac1f73ff045110dee4288eca84fec52d52918c4c0bc5bea2916e29c99221be6c3cd624c9e77f91c2045d6c6fe17fc92fbd569480414492e269bf4b4731c39d4dc497aaa1cfd8b613eff87bb70a61398cd6a4a8899513d067050e2ccb8159d1408ce2b44e3719ec38bb97c9a6778e154c85578358f09cc6a627220678f341eeb36a5b716e8355c98ed5c6c37142424d6ff377c81972d8fda4bf55c1410c0d9ea0fbdffff7858278f5eb3589b59dbecb5bb0c0355e21743e6261d6a118cc857e124491656548ff2a64c9e17aac355d7599247a59d557ff9544560c6369313a8104f703d0fc532e
+Content-Type: application/json
+
+{
+
+}
+
+###
+DELETE  http://localhost:9999/api/root/role/admin/remove/2 HTTP/1.1
+Authorization: 66c78c1c2549a1715cb445c2a116aaa245c6520f4da49a5cbd032eef8d6d756cd551693d16570e9b07e0819e9b87554c64016fb4aae306404f1c859a7969eb205afb220e8fe00851fc8376ced7fbae399ca37485a1144254018b3c3029e692ddbea0965575f53f8f6c41e8bba748c6fa39891f43fd0d1e46a26974f14f7b8b4cdddd85b62464f2908e72f8fb617f8fbf9ec8ff69d4ae44421bbc4e99a1730033fd46179e7ca2a36e51768193a5b9299ff2cd1e18ba4d279d6a2569f44157383f85822a6115a3d86ab1f186f31be37eb599c2c22ec5c2dd297deaa22943dca61029e5b9d51e1b3858f289428c16ee93264a23952a24f3ea3225c7ab46b84724f7
+Content-Type: application/json
+
+{
+
+}
+
+### creates a new category
+POST   http://localhost:9999/api/admin/category/create HTTP/1.1
+Authorization: 6ff0d43456c439b7fc01cf006bd3ebb8ae20c8db7df0096df26c712e58135a6334419a2cacb01eb42790bc10c6652e0f4319d2e1b599af6198a6855aac3622a11a3e6cdd936985f9a0a07ccb57ee5802931af42702ed21bfc6ffbfd2599d1be1fc278f118a7d799a510352e1dedaf83d228d90ef9b3826f43a19357778bf09ab897cdb5083622fdfe0fc34f0c28527dcba7de5f2bda32dd269d2bc29784c41d4e57efb41b52ff8f016d482bdcb0989fbe1de58cd8c801b02fc25b3498fba103d1514711efea472fda98b0eccf3ba378a587b4bc1505cba7e513c5d348007152928ab2745088d4befcc641c2ec1de30d5eae9cea1b0e187623c4ba25686bc9a0f
+Content-Type: application/json
+
+{
+    "name": "bbbqbb"
+}
+
+### updates an existing category
+POST   http://localhost:9999/api/admin/category/update HTTP/1.1
+Authorization: f1a9b9c54143621f6c7fe7d5b67a7a978761197ad6b9f3a165e9caa51a5b6faea10853ff2307746910effd4544857805d590bf6b76dcc0506d9a2559355eb4d41ce445c8a594a798d2c378a7d5c84cf6d307fc675c4db87fbc22faa3c25b8341f0af1ab5a28436fea04bcf5adb585799d4eba83250debdbc8b1c1b9e3b2c046c586a519b18d49519b4c303869bc10942d4c6dd2f1a6944a40d17eb66cb65437ea8fa72d3e90f75df9094b16131680fe8fc8f59bc023e3dd78b6f0b7c9049494e076eaf37cabc8c73b894df71e72fa5f97ce8874b0359ad5ef2a8d7c37bb8d3048c934dabd90820373e455775c49ba7f44c04fc7f2f21f7f0aedaf8b8124979ac
+Content-Type: application/json
+
+{
+    "id": 1,
+    "name": "v"
+}
+
+### creates a new product
+POST   http://localhost:9999/api/admin/product/create HTTP/1.1
+Authorization: f1a9b9c54143621f6c7fe7d5b67a7a978761197ad6b9f3a165e9caa51a5b6faea10853ff2307746910effd4544857805d590bf6b76dcc0506d9a2559355eb4d41ce445c8a594a798d2c378a7d5c84cf6d307fc675c4db87fbc22faa3c25b8341f0af1ab5a28436fea04bcf5adb585799d4eba83250debdbc8b1c1b9e3b2c046c586a519b18d49519b4c303869bc10942d4c6dd2f1a6944a40d17eb66cb65437ea8fa72d3e90f75df9094b16131680fe8fc8f59bc023e3dd78b6f0b7c9049494e076eaf37cabc8c73b894df71e72fa5f97ce8874b0359ad5ef2a8d7c37bb8d3048c934dabd90820373e455775c49ba7f44c04fc7f2f21f7f0aedaf8b8124979ac
+Content-Type: application/json
+
+{
+    "name": "rrr",
+    "category_id": 4,
+    "description": "slkkkkadnoigyvnslrhsvbldrvdg aeorgaero;igvahe r;achiwer fopacweyfoqa",
+    "qty": 10,
+    "price": 100
+}
+
+### updates a new product
+POST   http://localhost:9999/api/admin/product/update HTTP/1.1
+Authorization: 66c78c1c2549a1715cb445c2a116aaa245c6520f4da49a5cbd032eef8d6d756cd551693d16570e9b07e0819e9b87554c64016fb4aae306404f1c859a7969eb205afb220e8fe00851fc8376ced7fbae399ca37485a1144254018b3c3029e692ddbea0965575f53f8f6c41e8bba748c6fa39891f43fd0d1e46a26974f14f7b8b4cdddd85b62464f2908e72f8fb617f8fbf9ec8ff69d4ae44421bbc4e99a1730033fd46179e7ca2a36e51768193a5b9299ff2cd1e18ba4d279d6a2569f44157383f85822a6115a3d86ab1f186f31be37eb599c2c22ec5c2dd297deaa22943dca61029e5b9d51e1b3858f289428c16ee93264a23952a24f3ea3225c7ab46b84724f7
+Content-Type: application/json
+
+{
+    "id": 2,
+    "name": "boxdftbh",
+    "category_id": 1,
+    "description": "slkkkkadnoigyvnslrhsvbldrvdg fopacweyfoqa",
+    "qty": 12,
+    "price": 107,
+    "active": false
+}
+
+### removes product
+DELETE    http://localhost:9999/api/admin/product/remove/1 HTTP/1.1
+Authorization: 66c78c1c2549a1715cb445c2a116aaa245c6520f4da49a5cbd032eef8d6d756cd551693d16570e9b07e0819e9b87554c64016fb4aae306404f1c859a7969eb205afb220e8fe00851fc8376ced7fbae399ca37485a1144254018b3c3029e692ddbea0965575f53f8f6c41e8bba748c6fa39891f43fd0d1e46a26974f14f7b8b4cdddd85b62464f2908e72f8fb617f8fbf9ec8ff69d4ae44421bbc4e99a1730033fd46179e7ca2a36e51768193a5b9299ff2cd1e18ba4d279d6a2569f44157383f85822a6115a3d86ab1f186f31be37eb599c2c22ec5c2dd297deaa22943dca61029e5b9d51e1b3858f289428c16ee93264a23952a24f3ea3225c7ab46b84724f7
+
+
+### 
+GET  http://localhost:9999/api/products/categories HTTP/1.1
+
+###
+GET http://localhost:9999/api/products/products HTTP/1.1
+
+###
+GET http://localhost:9999/api/products/category/2/products HTTP/1.1
+
+###
+GET http://localhost:9999/api/products/product/5 HTTP/1.1
+
+###
+POST http://localhost:9999/api/user/buy HTTP/1.1
+Authorization: d167eb5f7eca27eac816ff85c184d6dc5ddbd935eb339b20be43392d7abf9e5e92728a7fa24e723b81536b6a673f7ccbeae792db31cc86a0b4310dbcc709b151ed640b92b80c2f9b2f9b34ed7ab449b3143fa0e015eab06e4ce105736fa2a4978d98ec3f49c84331c80dcd286b75392b2f5477bea481fe1b5b3fdd5a989f08541c35a8ef36319a948b483174175c5cbbf43a269c3dcab1d44038ecda64d383a224dcc37f7862474e8f59aae2bf63f7d06ff87f5a8de0dfc1baeaa9eb54550961dbc5d169d12fc0c2afaa13fa24cd82f0f479bd0ad2afc0fde283d2ac5d976dc3b0dfc72a5bdf2c69f8aaedcd34343e53cc8c55242c273715d1b8eca2fc95c111
+Content-Type: application/json
+
+    {
+        "product_id": 1,
+        "qty": 2,
+        "price":100
+    }

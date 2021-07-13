@@ -57,10 +57,10 @@ func (s *Server) signIn(writer http.ResponseWriter, request *http.Request) {
 		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	user, err := s.authSvc.SignIn(request.Context(), regData)
-	if err == ErrNoSuchUser {
+	token, err := s.authSvc.SignIn(request.Context(), regData)
+	if err != nil && token.Token == "" {
 		log.Println(err)
-		http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusConflict)
+		http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *Server) signIn(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(user)
+	data, err := json.Marshal(token)
 	if err != nil {
 		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

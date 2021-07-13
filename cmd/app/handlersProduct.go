@@ -72,7 +72,8 @@ func (s *Server) getProductsInCategory(writer http.ResponseWriter, request *http
 	}
 
 	products, err := s.productSvc.GetProductsInCategory(request.Context(), id)
-	if products == nil && err == ErrProductDoesNotExist {
+
+	if products == nil {
 		log.Println(err)
 		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return

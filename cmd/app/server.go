@@ -9,6 +9,7 @@ import (
 	"github.com/delgoden/internet-store/pkg/auth"
 	"github.com/delgoden/internet-store/pkg/product"
 	"github.com/delgoden/internet-store/pkg/root"
+	"github.com/delgoden/internet-store/pkg/user"
 	"github.com/gorilla/mux"
 )
 
@@ -36,16 +37,20 @@ type Server struct {
 	authSvc    *auth.Service
 	productSvc *product.Service
 	rootSvc    *root.Service
+	userSvc    *user.Service
 }
 
 // NewServer constructor function to create the server
-func NewServer(mux *mux.Router, adminSvc *admin.Service, authSvc *auth.Service, productSvc *product.Service, rootSvc *root.Service) *Server {
+func NewServer(mux *mux.Router, adminSvc *admin.Service,
+	authSvc *auth.Service, productSvc *product.Service,
+	rootSvc *root.Service, userSvc *user.Service) *Server {
 	return &Server{
 		mux:        mux,
 		adminSvc:   adminSvc,
 		authSvc:    authSvc,
 		productSvc: productSvc,
 		rootSvc:    rootSvc,
+		userSvc:    userSvc,
 	}
 }
 
@@ -81,10 +86,14 @@ func (s *Server) InitRoute() {
 	adminSubrouter.Handle("/product/{id:[0-9]+}/photo/add", adminAccess(http.HandlerFunc(s.addFoto))).Methods(POST)
 	adminSubrouter.Handle("/product/photo/{id:[0-9]+}/remove", adminAccess(http.HandlerFunc(s.removeFoto))).Methods(DELETE)
 
-	productSubrouter := s.mux.PathPrefix("/api/product").Subrouter()
+	productSubrouter := s.mux.PathPrefix("/api/products").Subrouter()
 	productSubrouter.HandleFunc("/categories", s.getCategories).Methods(GET)
 	productSubrouter.HandleFunc("/products", s.getAllActiveProducts).Methods(GET)
 	productSubrouter.HandleFunc("/category/{id:[0-9]+}/products", s.getProductsInCategory).Methods(GET)
 	productSubrouter.HandleFunc("/product/{id:[0-9]+}", s.getProductByID).Methods(GET)
 	s.mux.PathPrefix("/images/").Handler(http.StripPrefix("/images/", http.FileServer(http.Dir("images/product/"))))
+
+	userSubrouter := s.mux.PathPrefix("/api/user").Subrouter()
+	userSubrouter.Use(userAuthenticationMd)
+	userSubrouter.HandleFunc("/buy", s.buy).Methods(POST)
 }

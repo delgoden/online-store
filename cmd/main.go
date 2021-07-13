@@ -13,6 +13,7 @@ import (
 	"github.com/delgoden/internet-store/pkg/auth"
 	"github.com/delgoden/internet-store/pkg/product"
 	"github.com/delgoden/internet-store/pkg/root"
+	"github.com/delgoden/internet-store/pkg/user"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.uber.org/dig"
@@ -43,6 +44,7 @@ func excute(host, port, db string) (err error) {
 		auth.NewService,
 		product.NewService,
 		root.NewService,
+		user.NewService,
 		func(server *app.Server) *http.Server {
 			return &http.Server{
 				Addr:    net.JoinHostPort(host, port),
