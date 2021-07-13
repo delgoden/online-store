@@ -96,4 +96,7 @@ func (s *Server) InitRoute() {
 	userSubrouter := s.mux.PathPrefix("/api/user").Subrouter()
 	userSubrouter.Use(userAuthenticationMd)
 	userSubrouter.HandleFunc("/buy", s.buy).Methods(POST)
+	userSubrouter.HandleFunc("/cart/add", s.addProductIntoCart).Methods(POST)
+	userSubrouter.HandleFunc("/cart/remove/product/{id:[0-9]+}", s.removeProductFromCart).Methods(DELETE)
+	userSubrouter.HandleFunc("/buy/cart", s.buyFromCart).Methods(POST)
 }

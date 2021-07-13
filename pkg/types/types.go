@@ -73,9 +73,16 @@ type Position struct {
 	Price     int   `json:"price"`
 }
 
-type Purchases struct {
+type Purchase struct {
 	ID          int64     `json:"id"`
 	UserID      int64     `json:"user_id"`
 	PositionsID int64     `json:"position_id"`
 	Created     time.Time `json:"created"`
+}
+
+type Cart struct {
+	UserID    int64 `json:"user_id"`
+	ProductID int64 `json:"product_id"`
+	Qty       int   `json:"qty"`
+	Price     int   `json:"price"`
 }

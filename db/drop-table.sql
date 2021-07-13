@@ -12,3 +12,5 @@ DROP TABLE products;
 DROP TABLE positions;
 --
 DROP TABLE purchases;
+--
+DROP TABLE cart;
